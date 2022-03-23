@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="utf-8">
+    <title>Nemlig App</title>
+
+    <!-- CSS -->
+    <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='style.css') }}">
+
+    <!-- Bootstraps Java Scipts Links -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+
+    <!-- JQuery links  -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    <!--High CHART  -->
+    <script src="http://code.highcharts.com/highcharts.js"></script>
+    <script src="http://code.highcharts.com/highcharts-more.js"></script>
+    <script src="http://code.highcharts.com/modules/exporting.js"></script>
+    <script src="https://code.highcharts.com/modules/solid-gauge.js"></script>
+    <script src="https://code.highcharts.com/modules/export-data.js"></script>
+    <script src="https://code.highcharts.com/modules/accessibility.js"></script>
+
+    <!--Timezone manager-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.13/moment-timezone-with-data-2012-2022.min.js"></script>
+
+</head>
+
+<body>
+ 
+    <div class="jumbotron">
+        <h1 class="text-center text-black">Sensor data</h1>
+    </div>
+    <br>
+    <br>
+
+    <!--Dropdown menu-->
+    <div class="dropdown">
+        <center>
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          Temperature
+        </button>
+
+        <div class="dropdown-menu" aria-labelledby="dropdownMenu2">
+            <option></option><a href=# id=02><button class='btn btn-default'>0-2 grader (fisk)</button></a>
+            <option></option><a href=# id=35><button class='btn btn-default'>3-5 grader (mælk)</button></a>
+            <option></option><a href=# id=68><button class='btn btn-default'>6-8 grader (grønt)</button></a></div></div>
+
+            <script type=text/javascript>
+                $(function() {
+                    $('a#02').on('click', function(e) {
+                        e.preventDefault()
+                        $.getJSON('/background_process_test',
+                            function(data) {
+                            //do nothing
+                        });
+                        return false;
+                    });
+                });
+            </script>
+             <script type=text/javascript>
+                $(function() {
+                    $('a#35').on('click', function(e) {
+                        e.preventDefault()
+                        $.getJSON('/background_process_test',
+                            function(data) {
+                            //do nothing
+                        });
+                        return false;
+                    });
+                });
+            </script>
+             <script type=text/javascript>
+                $(function() {
+                    $('a#68').on('click', function(e) {
+                        e.preventDefault()
+                        $.getJSON('/background_process_test',
+                            function(data) {
+                            //do nothing
+                        });
+                        return false;
+                    });
+                });
+
+            </script>
+    
+        </div>
+      </div>
+
+    <!-- Gauges -->
+    <figure class="highcharts-figure">
+        <div id="container-temp" class="chart-container"></div>
+        <div id="container-hum" class="chart-container"></div>
+        <p class="highcharts-description text-center">
+            Write some text about the gauges or something idk -.-
+        </p>
+    </figure>
+
+    <br>
+    <hr class="my-4">
+    <br>
+    <br>
+
+    <!-- Chart 1 -->
+    <div class="container-fluid">
+        <!-- Example row of columns -->
+        <div class="row">
+            <div class="container-fluid" id="data-temperature">
+
+            </div>
+        </div>
+    </div>
+<br>
+<br>
+<br>
+
+    <!-- Chart 2 -->
+    <div class="container-fluid">
+        <!-- Example row of columns -->
+        <div class="row">
+            <div class="container-fluid" id="data-humidity">
+
+            </div>
+        </div>
+    </div>
+
+   
+
+    <script>
+        var chartTemperatue;
+        var chartHumidity;
+
+        function requestData()
+        {
+            // Får db data fra Flask
+            var requests = $.get('/data');
+
+            var tm = requests.done(function (result)
+            {
+                // Temperature data for chart
+                var seriesTemperature = chartTemperatue.series[0],
+                    shiftTemperature = seriesTemperature.data.length > 20;
+
+                // Humidity data for chart
+                var seriesHumidity = chartHumidity.series[0],
+                    shiftHumidity = seriesHumidity.data.length > 20;
+
+                // Chart time and temperature
+                var data1 = [];
+                data1.push(result[0]);
+                data1.push(result[1]);
+
+                // Chart time and humidity
+                var data2 = [];
+                data2.push(result[0]);
+                data2.push(result[2]);
+
+
+                chartTemperatue.series[0].addPoint(data1, true, shiftTemperature);
+                chartHumidity.series[0].addPoint(data2, true, shiftHumidity);
+
+
+                // Gauge temp and hum
+                var point,
+                    point2
+
+                if (chartTemp) {
+                    point = chartTemp.series[0].points[0];
+                    point.update(Math.round(data1[1]));
+                }
+
+                if (chartHum) {
+                    point2 = chartHum.series[0].points[0];
+                    point2.update(Math.round(data2[1]));
+                }
+
+                // run every x seconds
+                setTimeout(requestData, 10000);
+
+            });
+        }
+
+        $(document).ready(function()
+        {
+            Highcharts.setOptions({
+                time: {
+                    timezone: 'Europe/Berlin'
+            }
+            });
+            // --------------Chart 1 ----------------------------
+            chartTemperatue = new Highcharts.Chart({
+                chart:
+                    {
+                    renderTo: 'data-temperature',
+                    defaultSeriesType: 'area',
+                    events: {
+                        load: requestData
+                            }
+                    },
+                title:
+                    {
+                    text: 'Temperature'
+                    },
+                xAxis: {
+                    type: 'datetime',
+                    tickPixelInterval: 150,
+                    maxZoom: 20 * 1000
+                        },
+                yAxis: {
+                    minPadding: 0.2,
+                    maxPadding: 0.2,
+                    title: {
+                        text: 'Value',
+                        margin: 80
+                            }
+                         },
+                series: [{
+                    color : '#c23d23',
+                    lineColor: '#303030',
+                    name: 'Temperature',
+                    data: []
+                }]
+            });
+
+            // --------------Chart 2 Starts - -----------------
+            chartHumidity = new Highcharts.Chart({
+                chart:
+                    {
+                        renderTo: 'data-humidity',
+                        defaultSeriesType: 'area',
+                        events: {
+                            load: requestData
+                        }
+                    },
+                title:
+                    {
+                        text: 'Humidity'
+                    },
+                xAxis: {
+                    type: 'datetime',
+                    tickPixelInterval: 150,
+                    maxZoom: 20 * 1000
+                },
+                yAxis: {
+                    minPadding: 0.2,
+                    maxPadding: 0.2,
+                    title: {
+                        text: 'Value',
+                        margin: 80
+                    }
+                },
+                series: [{
+                    lineColor: '#1d82b8',
+                    name: 'Humidity',
+                    data: []
+                }]
+            });
+
+
+        });
+
+        /* Gauge Scripts */
+
+        var gaugeOptions = {
+            chart: {
+                type: 'solidgauge'
+            },
+
+            title: null,
+
+            pane: {
+                center: ['50%', '85%'],
+                size: '140%',
+                startAngle: -90,
+                endAngle: 90,
+                background: {
+                    backgroundColor:
+                        Highcharts.defaultOptions.legend.backgroundColor || '#EEE',
+                    innerRadius: '60%',
+                    outerRadius: '100%',
+                    shape: 'arc'
+                }
+            },
+
+            exporting: {
+                enabled: false
+            },
+
+            tooltip: {
+                enabled: false
+            },
+
+            yAxis: {
+                minColor: "#0000ff",
+                maxColor: "#ff0000",
+                lineWidth: 0,
+                tickWidth: 0,
+                minorTickInterval: null,
+                tickAmount: 2,
+                title: {
+                    y: -70
+                },
+                labels: {
+                    y: 16
+                }
+            },
+
+            plotOptions: {
+                solidgauge: {
+                    dataLabels: {
+                        y: 5,
+                        borderWidth: 0,
+                        useHTML: true
+                    }
+                }
+            }
+        };
+
+        // The speed gauge
+        var chartTemp = Highcharts.chart('container-temp', Highcharts.merge(gaugeOptions, {
+            yAxis: {
+                min: 0,
+                max: 30,
+                title: {
+                    text: 'Temperature'
+                }
+            },
+
+            credits: {
+                enabled: false
+            },
+
+            series: [{
+                name: 'temp',
+                data: [null],
+                dataLabels: {
+                    format:
+                        '<div style="text-align:center">' +
+                        '<span style="font-size:25px">{y}</span><br/>' +
+                        '<span style="font-size:12px;opacity:0.4">°C</span>' +
+                        '</div>'
+                },
+                tooltip: {
+                    valueSuffix: ' °C'
+                }
+            }]
+
+        }));
+
+        // The RPM gauge
+        var chartHum = Highcharts.chart('container-hum', Highcharts.merge(gaugeOptions, {
+            yAxis: {
+                min: 0,
+                max: 100,
+                title: {
+                    text: 'Humidity'
+                }
+            },
+
+            series: [{
+                name: 'hum',
+                data: [null],
+                dataLabels: {
+                    format:
+                        '<div style="text-align:center">' +
+                        '<span style="font-size:25px">{y}</span><br/>' +
+                        '<span style="font-size:12px;opacity:0.4">' +
+                        '%' +
+                        '</span>' +
+                        '</div>'
+                },
+                tooltip: {
+                    valueSuffix: ' %'
+                }
+            }]
+
+        }));
+    </script>
+</body>
+
+</html>
